@@ -1,0 +1,109 @@
+﻿
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>ECharts</title>
+</head>
+
+<body>
+    <!--Step:1 Prepare a dom for ECharts which (must) has size (width & hight)-->
+    <!--Step:1 为ECharts准备一个具备大小（宽高）的Dom-->
+    <div id="mainMap" style="height:500px;border:1px solid #ccc;padding:10px;"></div>
+    
+    <!--Step:2 Import echarts.js-->
+    <!--Step:2 引入echarts.js-->
+    <script src="js/echarts.js"></script>
+    
+    <script type="text/javascript">
+    // Step:3 conifg ECharts's path, link to echarts.js from current page.
+    // Step:3 为模块加载器配置echarts的路径，从当前页面链接到echarts.js，定义所需图表路径
+    require.config({
+        paths: {
+            echarts: './js'
+        }
+    });
+    
+    // Step:4 require echarts and use it in the callback.
+    // Step:4 动态加载echarts然后在回调函数中开始使用，注意保持按需加载结构定义图表路径
+    require(
+        [
+            'echarts',
+            'echarts/chart/bar',
+            'echarts/chart/line',
+            'echarts/chart/map'
+        ],
+        function (ec) {
+            
+            // --- 地图 ---
+            var myChart2 = ec.init(document.getElementById('mainMap'));
+            myChart2.setOption({
+                tooltip : {
+                    trigger: 'item',
+                    formatter: '{b}'
+                },
+                series : [
+                    {
+                        name: '中国',
+                        type: 'map',
+                        mapType: 'china',
+                        selectedMode : 'multiple',
+                        itemStyle:{
+                            normal:{label:{show:false}},
+                            emphasis:{label:{show:true}}
+                        },
+                        data:[],
+						markPoint : {
+							symbolSize: 5,// 标注大小，半宽（半径）参数，当图形为方向或菱形则总宽度为symbolSize * 2
+							itemStyle: {
+								normal: {
+									borderColor: '#87cefa',
+									borderWidth: 1,            // 标注边线线宽，单位px，默认为1
+									label: {
+										show: false
+									}
+								},
+								emphasis: {
+									borderColor: '#1e90ff',
+									borderWidth: 5,
+									label: {
+										show: false
+									}
+								}
+							},
+							clickable: true,
+							data : [
+								{name: "南充", value: 104},
+								{name: "天津", value: 105},
+								{name: "富阳", value: 106},
+								{name: "泰安", value: 112},
+								{name: "诸暨", value: 112},
+								{name: "郑州", value: 113},
+								{name: "哈尔滨", value: 114},
+								{name: "聊城", value: 116},
+								{name: "芜湖", value: 117},
+								{name: "唐山", value: 119},
+								{name: "平顶山", value: 119}
+							]
+						},
+						geoCoord: {
+							"南充":[106.110698,30.837793],
+							"天津":[117.2,39.13],
+							"富阳":[119.95,30.07],
+							"泰安":[117.13,36.18],
+							"诸暨":[120.23,29.71],
+							"郑州":[113.65,34.76],
+							"哈尔滨":[126.63,45.75],
+							"聊城":[115.97,36.45],
+							"芜湖":[118.38,31.33],
+							"唐山":[118.02,39.63],
+							"平顶山":[113.29,33.75]
+						}
+                    }
+                ]
+            });
+        }
+    );
+    </script>
+</body>
+</html>

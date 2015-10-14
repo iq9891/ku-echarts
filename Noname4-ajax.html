@@ -1,0 +1,156 @@
+﻿
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>ECharts</title>
+</head>
+
+<body style="margin:0;">
+    <div id="mainMap" style="height:500px;"></div>
+    <script src="js/echarts.js"></script>
+	
+	<script src="lib/zepto.min.js"></script>
+	<script src="lib/touch.js"></script>
+	<script src="lib/form.js"></script>
+	<script src="lib/fx.js"></script>
+    
+    <script type="text/javascript">
+	setFn()
+	function setFn(){
+		$('#mainMap').css({height:$(window).height()});
+	};
+
+    require.config({
+        paths: {
+            echarts: './js'
+        }
+    });
+    
+    require(
+        [
+            'echarts',
+            'echarts/chart/bar',
+            'echarts/chart/line',
+            'echarts/chart/map'
+        ],
+        function (ec) {
+            
+            // --- 地图 ---
+            var myChart = ec.init(document.getElementById('mainMap'));
+			var option = {
+				title : {
+					text: '全国主要城市星巴克分店信息',
+					subtext: '百度拾取坐标系统',
+					sublink: 'http://api.map.baidu.com/lbsapi/getpoint/index.html',
+					x:'center'
+				},
+				tooltip : {
+					trigger: 'item'
+				},
+				legend: {
+					orient: 'vertical',
+					x:'left',
+					data:['星巴克分店图']
+				},
+				/*dataRange: {
+					min : 0,
+					max : 500,
+					calculable : true,
+					color: ['maroon','purple','red','orange','yellow','lightgreen']
+				},*/
+				series : [
+					{
+						name: '星巴克分店图',
+						type: 'map',
+						mapType: 'china',
+						clickable: false,
+						hoverable: false,
+						roam:true,
+						data : [],
+						markPoint : {
+							symbolSize: 5,// 标注大小，半宽（半径）参数，当图形为方向或菱形则总宽度为symbolSize * 2
+							itemStyle: {
+								normal: {
+									borderColor: '#87cefa',
+									borderWidth: 1,            // 标注边线线宽，单位px，默认为1
+									label: {
+										show: false
+									}
+								},
+								emphasis: {
+									borderColor: '#1e90ff',
+									borderWidth: 5,
+									label: {
+										show: false
+									}
+								}
+							},
+							clickable: true,
+							data : [
+								{name: "南充", value: 104},
+								{name: "天津", value: 105},
+								{name: "富阳", value: 106},
+								{name: "泰安", value: 112},
+								{name: "诸暨", value: 112},
+								{name: "郑州", value: 113},
+								{name: "哈尔滨", value: 114},
+								{name: "聊城", value: 116},
+								{name: "芜湖", value: 117},
+								{name: "唐山", value: 119},
+								{name: "平顶山", value: 119}
+							]
+						},
+						geoCoord: {
+							"南充":[106.110698,30.837793],
+							"天津":[117.2,39.13],
+							"富阳":[119.95,30.07],
+							"泰安":[117.13,36.18],
+							"诸暨":[120.23,29.71],
+							"郑州":[113.65,34.76],
+							"哈尔滨":[126.63,45.75],
+							"聊城":[115.97,36.45],
+							"芜湖":[118.38,31.33],
+							"唐山":[118.02,39.63],
+							"平顶山":[113.29,33.75]
+						}
+					}
+				]
+			};
+			
+			myChart.setOption(option);
+            
+			var url = 'http://192.168.98.32:6002/echarts/demo/';
+
+			myChart.showLoading();
+			$.ajax({
+				type: 'GET',
+				url: url + 'data.js',
+				dataType:'javascript',//json
+				contentType: 'application/json',
+				success: function(data){
+
+					var d = JSON.parse(data);
+					option.series[0].geoCoord = d.geoCoord;
+					option.series[0].markPoint.data = d.data;
+					myChart.hideLoading();
+					myChart.setOption(option,true);
+
+				}
+			});
+
+			var resizeTicket = null;	//改变窗口
+			window.onresize = function(){
+				clearTimeout(resizeTicket);
+				resizeTicket = setTimeout(function() {
+					setFn();
+					myChart.restore();
+					myChart.resize();
+				}, 200);
+			};
+			
+        }
+    );
+    </script>
+</body>
+</html>

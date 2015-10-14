@@ -1,0 +1,15 @@
+﻿{
+	"0": {
+			"data":[
+				{"hospid":"085","hospname":"爱康国宾北京白石体检分院1","longitude":"116.331533","latitude":"39.954711","checkednum":"1000","equipmentnum":"11","accountnum":"12","departmentnum":"13"},
+				{"hospid":"039","hospname":"爱康国宾北京亚运村慧忠北里体检分院2","longitude":"116.41374","latitude":"40.013257","checkednum":"1000","equipmentnum":"14","accountnum":"15","departmentnum":"16"}
+			]
+		},
+	"1": {
+			"data":[
+				{"hospid":"085","hospname":"爱康国宾北京白石体检分院11","longitude":"121.524564","latitude":"31.233166","checkednum":"1000","equipmentnum":"11","accountnum":"12","departmentnum":"123"},
+				{"hospid":"039","hospname":"爱康国宾北京亚运村慧忠北里体检分院22","longitude":"121.459412","latitude":"31.280566","checkednum":"1000","equipmentnum":"1234","accountnum":"333","departmentnum":"555"},
+				{"hospid":"101","hospname":"爱康国宾上海中山公园南延安西路体检分院33","longitude":"121.506353","latitude":"31.26623","checkednum":"1000","equipmentnum":"120","accountnum":"410","departmentnum":"130"}
+			]
+		}
+}
