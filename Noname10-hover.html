@@ -1,0 +1,233 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>ECharts</title>
+</head>
+<style type="text/css">
+ {position:absolute;}
+</style>
+<body style="margin:0;">
+    <div id="mainMap" style="height:500px;"></div>
+	<a href="javascript:;" id="mainMapBack" style="position:absolute;left:0;top:100px;">返回</a>
+    <script src="js/echarts.js"></script>
+	
+	<script src="lib/jquery.1.8.3.min.js"></script>
+    
+    <script type="text/javascript">
+
+	//设置页面高度
+	setFn()
+	function setFn(){
+		$('#mainMap').css({height:$(window).height()});
+	};
+
+	var cityMap = {
+		"北京市": "110100",
+		"上海市": "310100",
+		"潍坊市": "370700"
+	};
+	
+    require.config({
+        paths: {
+            echarts: './js'
+        }
+    });
+    
+    require(
+        [
+            'echarts',
+            'echarts/chart/bar',
+            'echarts/chart/line',
+            'echarts/chart/map'
+        ],
+        function (ec) {
+			//数据扩展
+			var mapType = [];
+			var mapGeoData = require('echarts/util/mapData/params');
+			for (var city in cityMap) {
+				mapType.push(city);
+				// 自定义扩展图表类型
+				mapGeoData.params[city] = {
+					getGeoJson: (function (c) {
+						var geoJsonName = cityMap[c];
+						return function (callback) {
+							$.getJSON('geoJson/china-main-city/' + geoJsonName + '.json', callback);
+						}
+					})(city)
+				}
+			}
+            
+            // --- 地图 ---
+            var myChart = ec.init(document.getElementById('mainMap')),
+				url = 'http://192.168.98.32:6003/ku-echarts/',
+				initData;
+
+			var option = {
+				title : {
+					text: '全国体检分院分布信息',
+					x:'center'
+				},
+				tooltip : {
+					trigger: 'item',
+                    formatter: '{b}<br />{c}'
+				},
+				legend: {
+					orient: 'vertical',
+					x:'left',
+					data:['全国体检分院分布信息']
+				},
+				//dataRange: {
+					//min : 0,
+					//max : 500,
+					//calculable : true,
+					//color: ['maroon','purple','red','orange','yellow','lightgreen']
+				//},
+				series : [
+					{
+						name: '星巴克分店图',
+						type: 'map',
+						mapType: 'china',
+						clickable: false,
+						hoverable: false,
+						roam:true,
+						data : [],
+						 itemStyle:{
+							normal:{label:{show:true}},
+							emphasis:{label:{show:true}}
+						},
+						markPoint : {
+							symbolSize: 5,// 标注大小，半宽（半径）参数，当图形为方向或菱形则总宽度为symbolSize * 2
+							itemStyle: {
+								normal: {
+									borderColor: '#87cefa',
+									//color: '#000000',
+									borderWidth: 1,            // 标注边线线宽，单位px，默认为1
+									label: {
+										show: false
+									}
+								},
+								emphasis: {
+									borderColor: '#ff0000',
+									borderWidth: 5,
+									label: {
+										show: false
+									}
+								}
+							},
+							clickable: true,
+							data : []
+						},
+						geoCoord: {}
+					}
+				]
+			},
+			aIntData = [];
+			
+			myChart.setOption(option);
+			//修改主题
+			var curTheme;
+			require(['theme/sakura'], function(tarTheme){
+                curTheme = tarTheme;
+                myChart.setTheme(curTheme);
+            })
+
+			myChart.showLoading();
+			$.ajax({
+				type: 'GET',
+				url: url + 'data3.txt',
+				success: function(data){
+					var d = $.parseJSON(data);
+					option.series[0].geoCoord = aIntData[0] = d.geoCoord;
+					option.series[0].markPoint.data = aIntData[1] = initData = d.data;
+					option.tooltip.formatter = chinaFormatterFn;
+					myChart.hideLoading();
+					myChart.setOption(option,true);
+				}
+			});
+			function chinaFormatterFn(v){
+				var sHtml = '';
+				$.each(initData, function(i,item){
+					if(item.name == v[1]){
+						sHtml=item.name+"<br>"+item.value;
+					}
+				});
+				return sHtml;
+			}
+
+			// 气泡click事件
+			var ecConfig = require('echarts/config');
+			myChart.on(ecConfig.EVENT.CLICK, function(param){
+				
+
+				var sName = param.name,
+					iDataIndex = param.dataIndex;
+
+				var mt = mapType[iDataIndex];
+				
+				myChart.showLoading();
+
+				$.ajax({
+					type: 'GET',
+					url: url + 'CityData3.txt',
+					success: function(data){
+						
+						var d = $.parseJSON(data),
+							dData = d[iDataIndex].data;
+						
+						myChart.hideLoading();
+						//如果第二次不想点击
+						option.series[0].markPoint.clickable = false;
+						option.tooltip.enterable = true;
+						option.title.text += "："+mt+"分院信息";
+						option.series[0].mapType = mt;
+						
+						//处理数据
+						option.series[0].geoCoord = {};
+						$.each(dData,function(i,e){
+							e.geoCoord = [e.longitude,e.latitude];
+							e.name = e.hospname;
+						});
+						
+						option.series[0].markPoint.data = dData;
+						
+						option.tooltip.formatter = function (v){
+							var sHtml = '';
+							$.each(dData, function(i,item){
+								if(item.hospname == v[1]){
+									sHtml="名称：<a href='http://baidu.com'>"+item.hospname+"</a><br>最近一月到检数："+item.checkednum+"<br>设备数"+item.equipmentnum+"<br>账户数"+item.accountnum+"<br>科室数"+item.departmentnum;
+								}
+							});
+							return sHtml;
+						};
+						myChart.setOption(option, true);
+
+					}
+				});
+			});
+			
+			var resizeTicket = null;	//改变窗口
+			window.onresize = function(){
+				clearTimeout(resizeTicket);
+				resizeTicket = setTimeout(function() {
+					setFn();
+					myChart.restore();
+					myChart.resize();
+				}, 200);
+			};
+			
+			//返回
+			document.getElementById('mainMapBack').onclick = function(){
+				option.series[0].mapType = 'china';
+				option.series[0].geoCoord = aIntData[0];
+				option.series[0].markPoint.data = aIntData[1];
+				//option.tooltip.formatter=chinaFormatterFn;
+				option.title.text = "全国体检分院分布信息";
+				option.series[0].markPoint.clickable = true;
+				myChart.setOption(option, true);
+			};
+        }
+    );
+    </script>
+</body>
+</html>
